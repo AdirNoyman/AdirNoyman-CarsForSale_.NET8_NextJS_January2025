@@ -19,9 +19,9 @@ namespace SearchService.Data
 
             // Create the indexes for the Make,Model,Color columns so we could use them for the search functionality
             await DB.Index<Item>()
-                .Key(a => a.Make, KeyType.Ascending)
-                .Key(a => a.Model, KeyType.Ascending)
-                .Key(a => a.Color, KeyType.Ascending)
+                .Key(a => a.Make, KeyType.Text)
+                .Key(a => a.Model, KeyType.Text)
+                .Key(a => a.Color, KeyType.Text)
                 .CreateAsync();
 
             // Check if the database is empty or already populated
