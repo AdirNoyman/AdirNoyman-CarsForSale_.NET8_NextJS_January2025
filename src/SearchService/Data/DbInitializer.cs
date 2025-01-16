@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using MongoDB.Driver;
 using MongoDB.Entities;
 using SearchService.Models;
+using SearchService.Services;
 
 namespace SearchService.Data
 {
@@ -27,23 +28,25 @@ namespace SearchService.Data
             // Check if the database is empty or already populated
             var count = await DB.CountAsync<Item>();
 
-            if (count == 0)
+            using var scope = app.Services.CreateScope();
+
+            var httpClient = scope.ServiceProvider.GetRequiredService<AuctionsServiceHttpClient>();
+
+            // Call the AuctionsService to get the items and insert them into the search database
+            var items = await httpClient.GetItemsForSearchDb();
+
+            Console.WriteLine($"Returned Items from the Auction service 😎🤘. Items count: {items.Count}");
+
+            if (items.Count > 0)
             {
-                Console.WriteLine("Database is empty. Populating the database with sample data 🤓...");
-
-                var itemData = await File.ReadAllTextAsync("Data/auctions.json");
-
-                var options = new JsonSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true,
-                };
-
-                // Deserialize the JSON data into a list of Item objects (POCO - Plain Old C# Object)
-                var items = JsonSerializer.Deserialize<List<Item>>(itemData, options);
-
-                // Save the items to the database
                 await DB.SaveAsync(items);
+                Console.WriteLine("Items inserted successfully into the SearchDb 🚀");
             }
+            else
+            {
+                Console.WriteLine("The SearchDb is already populated with up to date items 🤷‍♂️");
+            }
+            
         }
 
     }
